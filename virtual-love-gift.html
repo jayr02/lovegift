@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Virtual Love Gift — 3D Envelope</title>
+  <!-- coquette purple palette + playful font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1: #2b0b3a; /* deep */
+      --bg2: #6e2aa2; /* purple */
+      --accent: #d9a3ff; /* pastel */
+      --paper: #fffafc;
+      --shadow: rgba(0,0,0,0.25);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      display:flex;align-items:center;justify-content:center;
+      font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      background: radial-gradient(1200px 600px at 10% 20%, rgba(168,107,255,0.12), transparent 10%),
+                  radial-gradient(900px 400px at 90% 80%, rgba(255,196,255,0.06), transparent 10%),
+                  linear-gradient(180deg, var(--bg1), var(--bg2));
+      color:#2b0228;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:30px;
+    }
+
+    .stage{
+      width:420px;
+      height:300px;
+      perspective:1400px;
+      display:flex;align-items:center;justify-content:center;
+      transform-style:preserve-3d;
+    }
+
+    .envelope{
+      width:360px;height:240px;position:relative;transform-style:preserve-3d;
+      transition:transform 700ms cubic-bezier(.2,.9,.2,1);
+    }
+
+    /* back body of envelope */
+    .envelope .body{
+      position:absolute;left:0;right:0;top:40px;bottom:0;border-radius:12px;overflow:hidden;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,244,250,0.98));
+      box-shadow: 0 12px 30px var(--shadow);
+      border: 2px solid rgba(255,255,255,0.08);
+      transform: translateZ(0);
+    }
+
+    /* decorative patterned lining */
+    .body::before{
+      content:'';position:absolute;inset:0;background:repeating-linear-gradient(120deg, rgba(110,42,162,0.03) 0 6px, transparent 6px 12px);
+      pointer-events:none;
+    }
+
+    /* triangle flap on top */
+    .flap{
+      position:absolute;left:0;right:0;top:0;height:140px;background:linear-gradient(180deg,#b86bff,#7a2bd6);
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+      transform-origin: top center;
+      transform: rotateX(0deg);
+      transition: transform 800ms cubic-bezier(.2,.9,.2,1), box-shadow 300ms;
+      border-radius:10px;box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      display:flex;align-items:flex-end;justify-content:center;padding-bottom:26px;
+    }
+
+    /* little heart seal */
+    .seal{
+      width:64px;height:64px;border-radius:50%;background:linear-gradient(180deg,#ffdff8,#ffb7f0);
+      display:flex;align-items:center;justify-content:center;font-family:'Dancing Script', cursive;font-size:20px;color:#51134b;box-shadow:0 6px 18px rgba(0,0,0,0.18);
+    }
+
+    /* the visible letter inside */
+    .letter{
+      position:absolute;left:18px;right:18px;top:52px;height:150px;background:var(--paper);border-radius:10px;padding:14px 16px;z-index:0;
+      transform-origin: center top;transform: translateY(20px) scale(.98);opacity:0;transition: transform 700ms cubic-bezier(.2,.9,.2,1), opacity 450ms;
+      box-shadow: 0 8px 20px rgba(24,6,25,0.12);
+      overflow:hidden;border:1px solid rgba(0,0,0,0.03);
+    }
+
+    /* portrait + message layout */
+    .letter .top{
+      display:flex;gap:12px;align-items:center;
+    }
+    .portrait{
+      width:92px;height:92px;border-radius:50%;overflow:hidden;flex:0 0 92px;border:4px solid rgba(170,70,220,0.15);
+      box-shadow: 0 6px 18px rgba(91,12,92,0.14);
+      background:linear-gradient(180deg,#fff,#f7eefb);
+    }
+    .portrait img{width:100%;height:100%;object-fit:cover;display:block}
+
+    .msgbox{flex:1;min-width:0}
+    .message{
+      font-size:14px;line-height:1.45;color:#2a0232;max-height:92px;overflow:auto;padding-right:6px;font-weight:500;
+    }
+    .message p{margin:0}
+
+    /* controls */
+    .controls{position:absolute;right:-60px;bottom:10px;display:flex;flex-direction:column;gap:10px}
+    .controls button{
+      background:linear-gradient(180deg,#8b3cf0,#6a1ab4);color:white;border:none;padding:10px 14px;border-radius:999px;cursor:pointer;font-weight:600;box-shadow:0 8px 18px rgba(106,26,180,0.18);
+    }
+    .controls button:active{transform:translateY(1px)}
+
+    /* when open */
+    .envelope.open .flap{transform: rotateX(-180deg);box-shadow: 0 4px 10px rgba(0,0,0,0.12)}
+    .envelope.open .letter{transform: translateY(-12px) scale(1);opacity:1;z-index:5}
+
+    /* tiny decorative floating hearts */
+    .sparkles{position:absolute;left:10px;top:-40px;width:120px;height:120px;pointer-events:none}
+    .heart{position:absolute;font-size:14px;opacity:.9}
+    .heart.h1{left:10px;top:18px;color:#ff6fb8;transform:rotate(-18deg)}
+    .heart.h2{left:84px;top:8px;color:#ffd1f0;transform:rotate(12deg)}
+    .heart.h3{left:58px;top:46px;color:#d9a3ff;transform:rotate(-6deg)}
+
+    /* responsiveness */
+    @media (max-width:420px){.stage{transform:scale(.85)} }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="envelope" id="envelope">
+      <div class="flap" id="flap">
+        <div class="seal">❤</div>
+      </div>
+
+      <div class="body"></div>
+
+      <div class="letter" id="letter">
+        <div class="top">
+          <div class="portrait">
+            <!-- EDIT IMAGE: change file name here if necessary -->
+            <!-- Example: <img src="her-picture.jpeg" alt="her"> -->
+            <img id="herImage" src="her-picture.jpg" alt="Her picture">
+          </div>
+          <div class="msgbox">
+            <!-- EDIT MESSAGE: put your sweet message between the <p> tags below -->
+            <div class="message" id="message">
+              <p>
+                hi baby ko happy 2nd monthsary po baby i love youu so muchh. thank you for staying by my side baby, i didn't expect na aabot tayo ng 2 months sa dami dami nating pinagdaanan. puro-away, tampuhan at iba pa. pero still inayos parin natin. i love you so muchh baby ko more months with you i love you alwayss my second half happy 2nd monthsary ulit babyy mwaaaa!!
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:center;margin-top:12px">
+          <button id="closeBtn" style="background:transparent;border:2px solid rgba(106,26,180,0.12);padding:8px 14px;border-radius:999px;cursor:pointer">Close</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="controls">
+      <button id="openBtn">Open</button>
+    </div>
+
+    <div class="sparkles" aria-hidden>
+      <div class="heart h1">💗</div>
+      <div class="heart h2">💖</div>
+      <div class="heart h3">💜</div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- USAGE NOTES ------------
+    // 1) To change the picture: replace the file 'her-picture.jpg' located in the SAME FOLDER as this HTML file,
+    //    or change the src attribute of the <img id="herImage"> above to the exact filename (case-sensitive on some systems).
+    // 2) To change the message: edit the <div id="message"> inner HTML.
+    // 3) If the image doesn't appear: enable "File name extensions" in File Explorer (Windows) and double-check the exact filename.
+
+    const envelope = document.getElementById('envelope');
+    const openBtn = document.getElementById('openBtn');
+    const closeBtn = document.getElementById('closeBtn');
+
+    function openEnvelope(){ envelope.classList.add('open'); }
+    function closeEnvelope(){ envelope.classList.remove('open'); }
+
+    openBtn.addEventListener('click', openEnvelope);
+    closeBtn.addEventListener('click', (e)=>{ e.stopPropagation(); closeEnvelope(); });
+
+    // clicking the envelope also toggles
+    envelope.addEventListener('click', (e)=>{
+      // prevent clicking on the inner close button to bubble
+      if(e.target && (e.target.id === 'closeBtn' || e.target.id === 'openBtn')) return;
+      envelope.classList.toggle('open');
+    });
+
+    // escape key to close
+    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeEnvelope(); });
+
+    // small tweak: if image fails to load, show a soft placeholder background
+    const img = document.getElementById('herImage');
+    img.addEventListener('error', ()=>{
+      img.src = '';
+      img.style.background = 'linear-gradient(180deg,#f9eefc,#fff1fb)';
+      img.style.display = 'block';
+      img.alt = 'add your picture file to the project folder and set the filename in the code';
+    });
+  </script>
+</body>
+</html>
